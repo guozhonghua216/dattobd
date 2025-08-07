@@ -605,6 +605,7 @@ int cow_reload(const char *path, uint64_t elements, unsigned long sect_size,
         int ret;
         unsigned long i;
         struct cow_manager *cm;
+        struct snap_device *dev;
 
         LOG_DEBUG("allocating cow manager");
         cm = kzalloc(sizeof(struct cow_manager), GFP_KERNEL);
@@ -653,6 +654,11 @@ int cow_reload(const char *path, uint64_t elements, unsigned long sect_size,
         for (i = 0; i < cm->total_sects; i++) {
                 cm->sects[i].has_data = 1;
         }
+
+        /* Get the dev of the cow manager and set the dev of the cow manager*/
+        dev = container_of(cm_out, struct snap_device, sd_cow);
+        LOG_DEBUG("cow_reload, setting dev of cow manager, cm: %p, dev: %p", cm, dev);
+        cm->dev = dev;
 
         *cm_out = cm;
         return 0;
