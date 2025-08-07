@@ -659,20 +659,21 @@ int cow_reload(const char *path, uint64_t elements, unsigned long sect_size,
 
 error:
         LOG_ERROR(ret, "error during cow manager initialization");
-        if (cm->dfilp){
-                __close_and_destroy_dattobd_mutable_file(cm->dfilp);
-                cm->dfilp = NULL;
-        }
 
-        if (cm->sects) {
-                if (cm->flags & (1 << COW_VMALLOC_UPPER))
-                        vfree(cm->sects);
-                else
-                        kfree(cm->sects);
-        }
+        if (cm) {
+                if (cm->dfilp){
+                        __close_and_destroy_dattobd_mutable_file(cm->dfilp);
+                        cm->dfilp = NULL;
+                }
 
-        if (cm)
+                if (cm->sects) {
+                        if (cm->flags & (1 << COW_VMALLOC_UPPER))
+                                vfree(cm->sects);
+                        else
+                                kfree(cm->sects);
+                }
                 kfree(cm);
+        }
 
         *cm_out = NULL;
         return ret;
@@ -775,21 +776,23 @@ int cow_init(struct snap_device *dev, const char *path, uint64_t elements, unsig
 
 error:
         LOG_ERROR(ret, "error during cow manager initialization");
-        if (cm->dfilp){
-                file_unlink(cm->dfilp);
-                __close_and_destroy_dattobd_mutable_file(cm->dfilp);
-                cm->dfilp = NULL;
-        }
 
-        if (cm->sects) {
-                if (cm->flags & (1 << COW_VMALLOC_UPPER))
-                        vfree(cm->sects);
-                else
-                        kfree(cm->sects);
-        }
+        if (cm) {
+                if (cm->dfilp){
+                        file_unlink(cm->dfilp);
+                        __close_and_destroy_dattobd_mutable_file(cm->dfilp);
+                        cm->dfilp = NULL;
+                }
 
-        if (cm)
+                if (cm->sects) {
+                        if (cm->flags & (1 << COW_VMALLOC_UPPER))
+                                vfree(cm->sects);
+                        else
+                                kfree(cm->sects);
+                }
+
                 kfree(cm);
+        }
 
         *cm_out = NULL;
         return ret;
