@@ -505,8 +505,16 @@ int cow_sync_and_close(struct cow_manager *cm)
         if (ret)
                 goto error;
 
-        ret = cow_get_file_extents(cm->dev, cm->dfilp->filp);
-	if(ret) goto error;
+        /*
+         * If the fs support fiemap, we need to get the extents of the file,
+         * otherwise it is ignored.
+         */
+        if (cm->dfilp->filp->f_inode->i_op && cm->dfilp->filp->f_inode->i_op->fiemap) {
+                ret = cow_get_file_extents(cm->dev, cm->dfilp->filp);
+	        if(ret) goto error;
+        } else {
+                LOG_WARN("fiemap not supported, ignoring extents processing.");
+        }
 
         if (cm->dfilp){
                 __close_and_destroy_dattobd_mutable_file(cm->dfilp);
